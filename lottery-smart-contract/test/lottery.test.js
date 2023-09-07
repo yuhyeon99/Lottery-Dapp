@@ -76,7 +76,7 @@ contract('Lottery', function ([deployer, user1, user2]){
                 user1BalanceBefore = new web3.utils.BN(user1BalanceBefore);
                 assert.equal(user1BalanceBefore.add(potBefore).add(betAmountBN).toString(), new web3.utils.BN(user1BalanceAfter).toString())
             })
-            it('should give the user the amount he or she bet when a single character matches', async () => {
+            it.only('should give the user the amount he or she bet when a single character matches', async () => {
                 // 한 글자 다 맞았을 때
 
                 await lottery.setAnswerForTest('0xabec17438e4f0afb9cc8b77ce84bb7fd501497cfa9a1695095247daa5b4b7bcc', {from:deployer});
@@ -104,7 +104,7 @@ contract('Lottery', function ([deployer, user1, user2]){
                 user1BalanceBefore = new web3.utils.BN(user1BalanceBefore);
                 assert.equal(user1BalanceBefore.add(betAmountBN).toString(), new web3.utils.BN(user1BalanceAfter).toString())
             })
-            it.only('should give the eth of user when the answer does not match at all', async () => {
+            it('should give the eth of user when the answer does not match at all', async () => {
                 // 다 틀렸을 때
 
                 await lottery.setAnswerForTest('0xabec17438e4f0afb9cc8b77ce84bb7fd501497cfa9a1695095247daa5b4b7bcc', {from:deployer});
