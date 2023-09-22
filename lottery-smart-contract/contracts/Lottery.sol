@@ -1,22 +1,33 @@
-pragma solidity >=0.4.21 <0.6.0;
+pragma solidity >=0.4.22 <0.9.0;
 
 
 contract Lottery {
+    // 베팅 정보를 저장하기 위한 구조체
     struct BetInfo {
         uint256 answerBlockNumber;
         address payable bettor;
         byte challenges;
     }
     
+    // _tail 및 _head : 베팅 정보를 관리하기 위한 큐의 머리와 꼬리를 나타내는 변수
+    // 베팅 정보를 순차적으로 저장하고 처리함
     uint256 private _tail;
     uint256 private _head;
+
+    // 베팅 정보를 저장하는 매핑 구조체와 연결되어있고 사용할 때는 key값(uint256(정수)) 형식으로 사용할 수 있다.
+    // ex) _bets[1];
     mapping (uint256 => BetInfo) private _bets;
 
+    // 스마트 컨트랙트의 소유자 주소를 저장하는 변수
+    // 스마트 컨트랙트를 배포한 계정
     address payable public owner;
     
-    
+    // 팟머니를 저장하는 변수, 베팅 금액이 축적됩니다.
     uint256 private _pot;
-    bool private mode = false; // false : use answer for test , true : use real block hash
+
+    // 테스트 모드와 실제 블록 해시를 사용하는 모드를 구분하기 위한 변수 
+    // 기본 값 : 테스트모드 (false)
+    bool private mode = true; // false : use answer for test , true : use real block hash
     bytes32 public answerForTest;
 
     uint256 constant internal BLOCK_LIMIT = 256;
@@ -62,13 +73,13 @@ contract Lottery {
      * @return 함수가 잘 수행되었는지 확인해는 bool 값
      */
     function bet(byte challenges) public payable returns (bool result) {
-        // Check the proper ether is sent
+        // 적절한 이더가 전송 되었는지 확인
         require(msg.value == BET_AMOUNT, "Not enough ETH");
 
-        // Push bet to the queue
+        // 큐에 베팅 정보 저장
         require(pushBet(challenges), "Fail to add a new Bet Info");
 
-        // Emit event
+        // Emit event 블록체인 로그에 기록하기 위함
         emit BET(_tail - 1, msg.sender, msg.value, challenges, block.number + BET_BLOCK_INTERVAL);
 
         return true;
@@ -92,6 +103,7 @@ contract Lottery {
             currentBlockStatus = getBlockStatus(b.answerBlockNumber);
             // Checkable : block.number > AnswerBlockNumber && block.number  <  BLOCK_LIMIT + AnswerBlockNumber 1
             if(currentBlockStatus == BlockStatus.Checkable) {
+                // 정답의 블록해시 변수에 할당
                 bytes32 answerBlockHash = getAnswerBlockHash(b.answerBlockNumber);
                 currentBettingResult = isMatch(b.challenges, answerBlockHash);
                 // if win, bettor gets pot
